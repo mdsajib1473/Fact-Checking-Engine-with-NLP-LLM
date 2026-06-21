@@ -1,0 +1,13 @@
+{
+  "name": "fact-checking-engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tailwind CSS build pipeline for the Fact-Checking Engine (manual Tailwind CLI, Phase 1 scaffold).",
+  "scripts": {
+    "build:css": "tailwindcss -i ./factcheck/static/factcheck/css/input.css -o ./factcheck/static/factcheck/css/tailwind_output.css --minify",
+    "watch:css": "tailwindcss -i ./factcheck/static/factcheck/css/input.css -o ./factcheck/static/factcheck/css/tailwind_output.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}

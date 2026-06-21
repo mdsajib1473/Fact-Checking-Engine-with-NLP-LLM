@@ -1,0 +1,26 @@
+# Render deployment config for the Fact-Checking Engine (Phase 1 baseline).
+# Secrets (Neon connection string, API keys) are set in the Render dashboard as
+# environment variables, NOT committed here. `sync: false` means "prompt me in
+# the dashboard" rather than syncing a value from this file.
+services:
+  - type: web
+    name: fact-checking-engine
+    runtime: python
+    plan: free
+    buildCommand: "bash ./build.sh"
+    startCommand: "gunicorn core.wsgi:application"
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        sync: false
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        sync: false
+      - key: NEON_DATABASE_URL
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GOOGLE_FACTCHECK_API_KEY
+        sync: false

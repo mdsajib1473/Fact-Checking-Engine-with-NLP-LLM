@@ -1,0 +1,13 @@
+{% extends "factcheck/base.html" %}
+
+{% block title %}Logged out — Fact-Checking Engine{% endblock %}
+
+{% block content %}
+  <section class="mx-auto max-w-sm">
+    <h1 class="text-2xl font-semibold tracking-tight">Logged out</h1>
+    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+      You have been logged out.
+      <a href="{% url 'factcheck:home' %}" class="underline">Return home</a>.
+    </p>
+  </section>
+{% endblock %}

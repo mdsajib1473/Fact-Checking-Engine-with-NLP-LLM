@@ -1,0 +1,26 @@
+# --- Secrets ---
+.env
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+db.sqlite3
+db.sqlite3-journal
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# --- Django ---
+staticfiles/
+
+# --- Node / Tailwind ---
+node_modules/
+
+# --- Editor / OS ---
+.DS_Store
+.idea/
+.vscode/

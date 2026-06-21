@@ -1,0 +1,98 @@
+{% extends "factcheck/base.html" %}
+
+{% block title %}Check a claim — Fact-Checking Engine{% endblock %}
+
+{% block content %}
+  <section class="mx-auto max-w-2xl">
+    <h1 class="text-2xl font-semibold tracking-tight">Check a claim</h1>
+    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+      Paste text or enter a URL to fact-check. Results will cite their sources.
+    </p>
+
+    {# Tab switcher: Text / URL. Visual shell only in Phase 1 — no submit yet. #}
+    <div class="mt-6">
+      <div
+        id="tab-bar"
+        class="inline-flex rounded-lg border border-slate-300 p-1 dark:border-slate-700"
+        role="tablist"
+      >
+        <button
+          type="button"
+          data-tab="text"
+          class="tab-btn rounded-md px-4 py-1.5 text-sm font-medium"
+          role="tab"
+        >
+          Text
+        </button>
+        <button
+          type="button"
+          data-tab="url"
+          class="tab-btn rounded-md px-4 py-1.5 text-sm font-medium"
+          role="tab"
+        >
+          URL
+        </button>
+      </div>
+
+      <div class="mt-4">
+        <div data-panel="text" class="tab-panel">
+          <label for="claim-text" class="sr-only">Claim text</label>
+          <textarea
+            id="claim-text"
+            rows="6"
+            placeholder="Paste a statement, social post, or paragraph to fact-check…"
+            class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm shadow-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:focus:ring-slate-800"
+          ></textarea>
+        </div>
+
+        <div data-panel="url" class="tab-panel hidden">
+          <label for="claim-url" class="sr-only">Claim URL</label>
+          <input
+            id="claim-url"
+            type="url"
+            placeholder="https://example.com/article-to-check"
+            class="w-full rounded-lg border border-slate-300 bg-white p-3 text-sm shadow-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:focus:ring-slate-800"
+          />
+        </div>
+      </div>
+
+      {# Submit is intentionally disabled — wiring lands in a later phase. #}
+      <button
+        type="button"
+        disabled
+        class="mt-4 cursor-not-allowed rounded-lg bg-slate-300 px-4 py-2 text-sm font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+      >
+        Check claim
+      </button>
+    </div>
+  </section>
+
+  <script>
+    // Tab switcher: toggles which input panel is visible. No submit logic yet.
+    (function () {
+      var tabs = document.querySelectorAll(".tab-btn");
+      var panels = document.querySelectorAll(".tab-panel");
+
+      function activate(name) {
+        tabs.forEach(function (tab) {
+          var on = tab.getAttribute("data-tab") === name;
+          tab.classList.toggle("bg-slate-900", on);
+          tab.classList.toggle("text-white", on);
+          tab.classList.toggle("dark:bg-slate-100", on);
+          tab.classList.toggle("dark:text-slate-900", on);
+        });
+        panels.forEach(function (panel) {
+          panel.classList.toggle("hidden", panel.getAttribute("data-panel") !== name);
+        });
+      }
+
+      tabs.forEach(function (tab) {
+        tab.addEventListener("click", function () {
+          activate(tab.getAttribute("data-tab"));
+        });
+      });
+
+      activate("text");
+    })();
+  </script>
+{% endblock %}

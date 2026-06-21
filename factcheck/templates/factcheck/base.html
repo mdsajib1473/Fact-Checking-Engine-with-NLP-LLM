@@ -1,0 +1,114 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Fact-Checking Engine{% endblock %}</title>
+
+    {# Apply the saved theme before paint to avoid a flash of the wrong mode. #}
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem("theme");
+          if (theme === "dark") {
+            document.documentElement.classList.add("dark");
+          }
+        } catch (e) {}
+      })();
+    </script>
+
+    <link rel="stylesheet" href="{% static 'factcheck/css/tailwind_output.css' %}" />
+  </head>
+  <body class="h-full bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <header class="border-b border-slate-200 dark:border-slate-800">
+      <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+        <a href="{% url 'factcheck:home' %}" class="flex items-center gap-2">
+          <span class="text-lg font-semibold tracking-tight">Fact-Checking Engine</span>
+        </a>
+
+        <div class="flex items-center gap-3">
+          {# Language switcher shell — UI only in Phase 1, no translation yet. #}
+          <div
+            id="lang-switcher"
+            class="flex overflow-hidden rounded-md border border-slate-300 text-sm dark:border-slate-700"
+          >
+            <button
+              type="button"
+              data-lang="en"
+              class="lang-btn px-2.5 py-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              EN
+            </button>
+            <button
+              type="button"
+              data-lang="bn"
+              class="lang-btn border-l border-slate-300 px-2.5 py-1 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+            >
+              বাংলা
+            </button>
+          </div>
+
+          {# Dark mode toggle — JS-powered, persists to localStorage. #}
+          <button
+            id="theme-toggle"
+            type="button"
+            aria-label="Toggle dark mode"
+            class="rounded-md border border-slate-300 px-2.5 py-1 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+          >
+            <span class="hidden dark:inline">☀️ Light</span>
+            <span class="inline dark:hidden">🌙 Dark</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-5xl px-4 py-8">{% block content %}{% endblock %}</main>
+
+    <footer class="mx-auto max-w-5xl px-4 py-6 text-xs text-slate-500 dark:text-slate-400">
+      AI-assisted fact checking. Always verify with the cited sources.
+    </footer>
+
+    <script>
+      // Dark mode toggle: flips the `dark` class on <html> and stores the choice.
+      document.getElementById("theme-toggle").addEventListener("click", function () {
+        var isDark = document.documentElement.classList.toggle("dark");
+        try {
+          localStorage.setItem("theme", isDark ? "dark" : "light");
+        } catch (e) {}
+      });
+
+      // Language switcher shell: stores the preference and marks the active button.
+      // No actual translation happens yet — that arrives in a later phase.
+      (function () {
+        var buttons = document.querySelectorAll(".lang-btn");
+        var active = "en";
+        try {
+          active = localStorage.getItem("lang") || "en";
+        } catch (e) {}
+
+        function render(lang) {
+          document.documentElement.setAttribute("lang", lang);
+          buttons.forEach(function (btn) {
+            var on = btn.getAttribute("data-lang") === lang;
+            btn.classList.toggle("bg-slate-200", on);
+            btn.classList.toggle("dark:bg-slate-700", on);
+            btn.classList.toggle("font-semibold", on);
+          });
+        }
+
+        buttons.forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var lang = btn.getAttribute("data-lang");
+            try {
+              localStorage.setItem("lang", lang);
+            } catch (e) {}
+            render(lang);
+          });
+        });
+
+        render(active);
+      })();
+    </script>
+  </body>
+</html>
