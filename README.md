@@ -2,7 +2,7 @@
 
 An AI-powered fact-checking system that extracts verifiable claims from text or
 URLs, cross-references trusted sources, and returns a transparent, source-cited
-verdict. See [AGENT.md](Agent.md) for the locked tech stack, rules, structure,
+verdict. See [AGENT.md](AGENT.md) for the locked tech stack, rules, structure,
 and database schema.
 
 > **Phase status:** Phase 1 (Foundation) complete — Django + Neon + scaffold.
@@ -82,4 +82,4 @@ Tailwind CSS, runs `collectstatic`, and applies migrations. Set the secrets
 
 ## Project layout
 
-See [AGENT.md](Agent.md) Section 4 for the full, locked structure.
+See [AGENT.md](AGENT.md) Section 4 for the full, locked structure.
