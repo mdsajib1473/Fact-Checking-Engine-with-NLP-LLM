@@ -9,6 +9,7 @@
 ![Groq](https://img.shields.io/badge/LLM-Groq-F55036?style=flat-square)
 ![Deployment](https://img.shields.io/badge/Deploy-Render-46E3B7?style=flat-square&logo=render&logoColor=white)
 ![Status](https://img.shields.io/badge/Status-In%20Development-orange?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 # Fact-Checking Engine with NLP-AI
 
