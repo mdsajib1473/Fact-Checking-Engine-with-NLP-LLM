@@ -26,3 +26,14 @@ requests>=2.31,<3.0
 # The HuggingFace fallback model (MoritzLaurer/mDeBERTa-v3-base-mnli-xnli) is
 # downloaded automatically on first use and cached under ~/.cache/huggingface.
 # See README.md → "NLP model setup".
+
+# --- Phase 3 — Evidence retrieval ---
+# HTML parsing for the URL scraper (scraper_service). lxml is BeautifulSoup's
+# fast, robust parser backend.
+beautifulsoup4>=4.12,<5.0
+lxml>=5.0,<6.0
+# Relevance scoring: cosine similarity between claim and evidence-snippet
+# embeddings. Lazy-loaded singleton (sentence-transformers/all-MiniLM-L6-v2,
+# auto-downloaded on first use to ~/.cache/huggingface); degrades to a lexical
+# overlap score if it cannot load. Reuses the CPU-only torch pinned above.
+sentence-transformers>=3.0,<6.0

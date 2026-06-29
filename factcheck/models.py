@@ -83,7 +83,15 @@ class Source(models.Model):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    verdict = models.ForeignKey(Verdict, on_delete=models.CASCADE, related_name="sources")
+    # Nullable until Phase 4: evidence is retrieved and persisted in Phase 3
+    # before any verdict exists, then linked to its verdict during scoring.
+    verdict = models.ForeignKey(
+        Verdict,
+        on_delete=models.CASCADE,
+        related_name="sources",
+        null=True,
+        blank=True,
+    )
     source_name = models.CharField(max_length=255)
     source_url = models.URLField(max_length=2000)
     evidence_snippet = models.TextField()

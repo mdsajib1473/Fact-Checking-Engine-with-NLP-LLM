@@ -24,3 +24,6 @@ node_modules/
 .DS_Store
 .idea/
 .vscode/
+
+core/settings_test.py
+test_db.sqlite3

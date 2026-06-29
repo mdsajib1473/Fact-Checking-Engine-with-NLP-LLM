@@ -112,6 +112,11 @@ else:
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
+            # Evidence retrieval writes to the cache from parallel threads
+            # (ThreadPoolExecutor). SQLite serializes writes, so give a busy
+            # connection time to wait for the lock instead of erroring out with
+            # "database is locked". Neon/Postgres handles this natively.
+            "OPTIONS": {"timeout": 20},
         }
     }
 
@@ -197,6 +202,49 @@ ENABLE_HF_FALLBACK = env_bool("ENABLE_HF_FALLBACK", default=True)
 # Length bounds for the /api/v1/extract/ development endpoint (AGENT.md Rule 6).
 EXTRACT_INPUT_MIN_CHARS = env_int("EXTRACT_INPUT_MIN_CHARS", 10)
 EXTRACT_INPUT_MAX_CHARS = env_int("EXTRACT_INPUT_MAX_CHARS", 5000)
+
+
+# --- Evidence retrieval (Phase 3) ---
+# Every external evidence source is cached in the CacheEntry table with a TTL
+# (AGENT.md Rule 11). TTLs, the API key, the HTTP timeout, and the User-Agent
+# all live here, never hardcoded in the service (Rule 7).
+
+# Cache TTLs in seconds, per source. Wikipedia/Wikidata are stable reference
+# data (24h); Google Fact Check ratings change more often, so they expire
+# sooner (1h).
+CACHE_TTL_WIKIPEDIA = env_int("CACHE_TTL_WIKIPEDIA", 86400)
+CACHE_TTL_WIKIDATA = env_int("CACHE_TTL_WIKIDATA", 86400)
+CACHE_TTL_GOOGLE_FACTCHECK = env_int("CACHE_TTL_GOOGLE_FACTCHECK", 3600)
+
+# Google Fact Check Tools API key (free tier). Read from .env, never hardcoded
+# or committed (Rule 6). Absent key => the source is skipped, not fatal.
+GOOGLE_FACTCHECK_API_KEY = os.environ.get("GOOGLE_FACTCHECK_API_KEY", "")
+
+# Hard timeout (seconds) applied to every outbound HTTP request so a slow source
+# can never hang the pipeline. Descriptive User-Agent identifies the project to
+# the public APIs (Wikipedia/Wikidata etiquette).
+HTTP_TIMEOUT_SECONDS = env_int("HTTP_TIMEOUT_SECONDS", 10)
+PROJECT_USER_AGENT = os.environ.get(
+    "PROJECT_USER_AGENT",
+    "FactCheckingEngine/0.3 (NLP-AI fact-checker; +https://github.com/mdsajib1473)",
+)
+
+# Relevance scoring: cosine similarity between claim and evidence-snippet
+# embeddings via sentence-transformers. Lazy-loaded singleton; if it cannot load
+# (memory, missing package) relevance degrades to a lexical token-overlap score
+# rather than crashing — same graceful-degrade philosophy as the NLP fallback.
+EMBEDDING_MODEL = os.environ.get(
+    "EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"
+)
+ENABLE_EMBEDDING_RELEVANCE = env_bool("ENABLE_EMBEDDING_RELEVANCE", default=True)
+
+# Scraper safety bounds (AGENT.md Rule 6 / Rule 12): cap fetched content size and
+# only ever follow http(s) URLs.
+SCRAPER_MAX_CONTENT_CHARS = env_int("SCRAPER_MAX_CONTENT_CHARS", 50000)
+
+# Upper bound on the length of any evidence snippet returned to the pipeline, so
+# a huge Wikipedia extract can't bloat downstream prompts/storage.
+EVIDENCE_SNIPPET_MAX_CHARS = env_int("EVIDENCE_SNIPPET_MAX_CHARS", 2000)
 
 
 # --- Production hardening (active only when DEBUG is False) ---

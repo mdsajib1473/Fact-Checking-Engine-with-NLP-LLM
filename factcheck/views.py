@@ -24,17 +24,19 @@ class HomeView(TemplateView):
 
 
 class ExtractClaimsView(APIView):
-    """POST ``/api/v1/extract/`` — extract and persist claims from raw text.
+    """POST ``/api/v1/extract/`` — extract claims and retrieve their evidence.
 
-    Development testing harness for the Phase 2 NLP pipeline (not the final UI
-    submission flow, which is wired in Phase 4). Accepts
-    ``{"text": ..., "source_type": "text"}``, validates it (AGENT.md Rule 6),
-    runs :func:`claim_service.process_text_input`, and returns the extracted
-    claims, the detected language, and a count. Invalid input yields 400.
+    Development testing harness for the Phase 2 NLP pipeline plus the Phase 3
+    evidence-retrieval stage (not the final UI submission flow, which is wired in
+    Phase 4). Accepts ``{"text": ..., "source_type": "text"}``, validates it
+    (AGENT.md Rule 6), runs
+    :func:`claim_service.process_text_input_with_evidence`, and returns each
+    claim with its language, confidence, and retrieved evidence, plus the
+    detected language and a count. Invalid input yields 400.
     """
 
     def post(self, request):
-        """Validate the request body, run extraction, and return the result JSON."""
+        """Validate the request body, run the pipeline, and return the result JSON."""
         serializer = ExtractRequestSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -42,19 +44,12 @@ class ExtractClaimsView(APIView):
         text = serializer.validated_data["text"]
         source_type = serializer.validated_data["source_type"]
 
-        claims = claim_service.process_text_input(text, source_type)
-        payload = [
-            {
-                "claim": claim.extracted_claim,
-                "language": claim.language,
-            }
-            for claim in claims
-        ]
+        claims = claim_service.process_text_input_with_evidence(text, source_type)
         return Response(
             {
-                "claims": payload,
+                "claims": claims,
                 "language": detect_language(text),
-                "count": len(payload),
+                "count": len(claims),
             },
             status=status.HTTP_200_OK,
         )
