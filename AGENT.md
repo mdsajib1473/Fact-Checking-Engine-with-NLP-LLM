@@ -1,8 +1,5 @@
 # AGENT.md — Fact-Checking Engine with NLP-AI
 
-**Domain:** InfoTech / Social Media
-**Portfolio role:** Project 2 of 3 — AI for Truth & Information Integrity
-**Built with:** Claude Code (Pro subscription), 5-phase structured workflow
 
 ---
 
@@ -22,7 +19,7 @@ An AI-powered fact-checking system that accepts any text, URL, or social media p
 | Auth | Django's built-in auth system (`django.contrib.auth`), since Neon doesn't bundle an auth layer |
 | Vector storage | pgvector (Neon extension — enabled per-database via `CREATE EXTENSION vector;`) |
 | NLP (claim extraction) | spaCy + HuggingFace transformers (both — spaCy for speed, HuggingFace as fallback for harder cases) |
-| LLM (verdict reasoning) | Groq free tier (Llama 3 / Mixtral) |
+| LLM (verdict reasoning) | Groq free tier (openai/gpt-oss-120b) |
 | Evidence sources | Wikipedia API, Wikidata SPARQL, Google Fact Check Tools API |
 | Async tasks | Django BackgroundTasks (no Celery/Redis — keep infra minimal) |
 | Caching | Postgres table-based cache with TTL (no Redis) |
@@ -43,7 +40,7 @@ An AI-powered fact-checking system that accepts any text, URL, or social media p
 4. Don't Commit and push code (I wil do it manually after testing manual testing). (Ask if pushing is mandatory)
 5. Write clean, well-commented code — every function and class must have a docstring.
 6. Follow secure coding practices — never expose secrets, always use CSRF protection, validate and sanitize all user inputs before processing.
-7. Write scalable code — keep business logic in services/, keep views thin, never hardcode values that belong in settings or .env.
+7. Write scalable code — keep business logic in services, keep views thin, never hardcode values that belong in settings or .env.
 8. Do not over-comment — only comment where the code is not self-explanatory. Avoid stating the obvious (e.g. `# increment counter` above `i += 1`).
 9. Never let the LLM output a verdict without at least one source citation attached — if no evidence is retrieved, the verdict must default to "Unverifiable", never "False" or "True".
 10. Always show the user the raw evidence snippet and source link behind a verdict — no black-box scoring. Transparency is a core requirement, not a nice-to-have.
@@ -143,7 +140,7 @@ Set up Django project, connect to Neon Postgres, define models and migrations, c
 Build the `claim_extraction.py` service using spaCy for fast dependency-parse extraction, with HuggingFace transformers as a fallback for ambiguous cases. Output clean, searchable claim strings. Unit test against sample English and Bangla text.
 
 ### Phase 3 — Evidence Retrieval
-Build `evidence_retrieval.py` integrating Wikipedia API, Wikidata SPARQL, and Google Fact Check Tools API, each wrapped with the Supabase-based cache layer and TTL. Implement the fallback chain (rule 15) so a failed source doesn't break the pipeline.
+Build `evidence_retrieval.py` integrating Wikipedia API, Wikidata SPARQL, and Google Fact Check Tools API, each wrapped with the Postgres-based cache (Neon) layer and TTL. Implement the fallback chain (rule 15) so a failed source doesn't break the pipeline.
 
 ### Phase 4 — Verdict Engine + UI
 Build `verdict_engine.py` using the Groq free-tier LLM for chain-of-thought verdict reasoning with mandatory source citation (rule 9). Build the Tailwind UI: tab switcher (text/URL input), full report view with expandable evidence panels, simple-view toggle, dark mode, and Bangla/English rendering.
