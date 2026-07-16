@@ -39,3 +39,13 @@ class ExtractRequestSerializer(serializers.Serializer):
                 f"Text must be at most {max_chars} characters."
             )
         return stripped
+
+
+class CheckUrlRequestSerializer(serializers.Serializer):
+    """Validate a URL fact-check request body: ``{"url"}``.
+
+    ``URLField`` restricts the value to well-formed http(s) URLs (Rule 6); the
+    scraper re-checks the scheme defensively before fetching.
+    """
+
+    url = serializers.URLField(max_length=2000)

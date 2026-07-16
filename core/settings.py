@@ -247,6 +247,21 @@ SCRAPER_MAX_CONTENT_CHARS = env_int("SCRAPER_MAX_CONTENT_CHARS", 50000)
 EVIDENCE_SNIPPET_MAX_CHARS = env_int("EVIDENCE_SNIPPET_MAX_CHARS", 2000)
 
 
+# --- Verdict engine (Phase 4) ---
+# Groq free-tier LLM for chain-of-thought verdict reasoning. Key from .env only
+# (Rule 6); model + limits configurable without touching code (Rule 7). An
+# absent key disables the engine: verdicts fall back to UNVERIFIABLE (Rule 15).
+
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b")
+GROQ_API_URL = os.environ.get(
+    "GROQ_API_URL", "https://api.groq.com/openai/v1/chat/completions"
+)
+# LLM calls are slower than the evidence APIs — separate, longer timeout.
+GROQ_TIMEOUT_SECONDS = env_int("GROQ_TIMEOUT_SECONDS", 30)
+GROQ_MAX_TOKENS = env_int("GROQ_MAX_TOKENS", 1024)
+
+
 # --- Production hardening (active only when DEBUG is False) ---
 # Foundational flags for Render; deeper hardening (HSTS preload, rate limiting)
 # lands in Phase 5.

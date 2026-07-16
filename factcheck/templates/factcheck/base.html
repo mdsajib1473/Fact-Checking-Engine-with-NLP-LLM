@@ -24,11 +24,11 @@
     <header class="border-b border-slate-200 dark:border-slate-800">
       <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <a href="{% url 'factcheck:home' %}" class="flex items-center gap-2">
-          <span class="text-lg font-semibold tracking-tight">Fact-Checking Engine</span>
+          <span class="text-lg font-semibold tracking-tight" data-i18n="app.title">Fact-Checking Engine</span>
         </a>
 
         <div class="flex items-center gap-3">
-          {# Language switcher shell — UI only in Phase 1, no translation yet. #}
+          {# Language switcher: swaps the interface chrome strings (EN/বাংলা). #}
           <div
             id="lang-switcher"
             class="flex overflow-hidden rounded-md border border-slate-300 text-sm dark:border-slate-700"
@@ -56,8 +56,8 @@
             aria-label="Toggle dark mode"
             class="rounded-md border border-slate-300 px-2.5 py-1 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
           >
-            <span class="hidden dark:inline">☀️ Light</span>
-            <span class="inline dark:hidden">🌙 Dark</span>
+            <span class="hidden dark:inline">☀️ <span data-i18n="theme.light">Light</span></span>
+            <span class="inline dark:hidden">🌙 <span data-i18n="theme.dark">Dark</span></span>
           </button>
         </div>
       </div>
@@ -66,7 +66,7 @@
     <main class="mx-auto max-w-5xl px-4 py-8">{% block content %}{% endblock %}</main>
 
     <footer class="mx-auto max-w-5xl px-4 py-6 text-xs text-slate-500 dark:text-slate-400">
-      AI-assisted fact checking. Always verify with the cited sources.
+      <span data-i18n="footer.note">AI-assisted fact checking. Always verify with the cited sources.</span>
     </footer>
 
     <script>
@@ -78,37 +78,115 @@
         } catch (e) {}
       });
 
-      // Language switcher shell: stores the preference and marks the active button.
-      // No actual translation happens yet — that arrives in a later phase.
+      // Interface-chrome translation (Phase 4). A small per-language dictionary
+      // is enough here (no Django i18n framework needed yet): elements opt in
+      // via data-i18n="key" (text) / data-i18n-placeholder="key" (placeholder).
+      // Claim/evidence/verdict CONTENT keeps its own detected language — this
+      // switches only the surrounding UI labels.
       (function () {
-        var buttons = document.querySelectorAll(".lang-btn");
-        var active = "en";
-        try {
-          active = localStorage.getItem("lang") || "en";
-        } catch (e) {}
+        var STRINGS = {
+          en: {
+            "app.title": "Fact-Checking Engine",
+            "theme.light": "Light",
+            "theme.dark": "Dark",
+            "footer.note": "AI-assisted fact checking. Always verify with the cited sources.",
+            "home.heading": "Check a claim",
+            "home.sub": "Paste text or enter a URL to fact-check. Results will cite their sources.",
+            "home.tab.text": "Text",
+            "home.tab.url": "URL",
+            "home.placeholder.text": "Paste a statement, social post, or paragraph to fact-check…",
+            "home.placeholder.url": "https://example.com/article-to-check",
+            "home.submit": "Check claim",
+            "home.loading": "Checking… this can take a little while",
+            "home.error.text_short": "Please enter at least 10 characters.",
+            "home.error.text_long": "Text must be at most 5000 characters.",
+            "home.error.url": "Please enter a valid http(s) URL.",
+            "home.error.request": "The request failed. Please try again.",
+            "report.heading": "Report",
+            "report.simple_view": "Simple view",
+            "report.claim": "Claim",
+            "report.confidence": "Confidence",
+            "report.explanation": "Explanation",
+            "report.evidence": "Evidence",
+            "report.relevance": "relevance",
+            "report.no_evidence": "No evidence was retrieved for this claim.",
+            "report.empty": "No verifiable claims were found in the submitted text.",
+            "report.missing": "No report data found. Submit something to fact-check first.",
+            "report.check_another": "Check another claim",
+          },
+          bn: {
+            "app.title": "ফ্যাক্ট-চেকিং ইঞ্জিন",
+            "theme.light": "লাইট",
+            "theme.dark": "ডার্ক",
+            "footer.note": "এআই-সহায়িত ফ্যাক্ট চেকিং। সর্বদা উদ্ধৃত উৎসের সাথে যাচাই করুন।",
+            "home.heading": "দাবি যাচাই করুন",
+            "home.sub": "যাচাই করতে টেক্সট পেস্ট করুন বা একটি URL দিন। ফলাফলে উৎস উদ্ধৃত থাকবে।",
+            "home.tab.text": "টেক্সট",
+            "home.tab.url": "URL",
+            "home.placeholder.text": "যাচাই করতে একটি বিবৃতি, পোস্ট বা অনুচ্ছেদ পেস্ট করুন…",
+            "home.placeholder.url": "https://example.com/article-to-check",
+            "home.submit": "যাচাই করুন",
+            "home.loading": "যাচাই চলছে… কিছুটা সময় লাগতে পারে",
+            "home.error.text_short": "অন্তত ১০ অক্ষর লিখুন।",
+            "home.error.text_long": "টেক্সট সর্বোচ্চ ৫০০০ অক্ষর হতে পারবে।",
+            "home.error.url": "একটি বৈধ http(s) URL দিন।",
+            "home.error.request": "অনুরোধ ব্যর্থ হয়েছে। আবার চেষ্টা করুন।",
+            "report.heading": "রিপোর্ট",
+            "report.simple_view": "সরল ভিউ",
+            "report.claim": "দাবি",
+            "report.confidence": "আস্থা",
+            "report.explanation": "ব্যাখ্যা",
+            "report.evidence": "প্রমাণ",
+            "report.relevance": "প্রাসঙ্গিকতা",
+            "report.no_evidence": "এই দাবির জন্য কোনো প্রমাণ পাওয়া যায়নি।",
+            "report.empty": "জমা দেওয়া টেক্সটে কোনো যাচাইযোগ্য দাবি পাওয়া যায়নি।",
+            "report.missing": "কোনো রিপোর্ট ডেটা নেই। আগে কিছু যাচাই করতে দিন।",
+            "report.check_another": "আরেকটি দাবি যাচাই করুন",
+          },
+        };
 
-        function render(lang) {
-          document.documentElement.setAttribute("lang", lang);
-          buttons.forEach(function (btn) {
-            var on = btn.getAttribute("data-lang") === lang;
+        var current = "en";
+        try {
+          current = localStorage.getItem("lang") || "en";
+        } catch (e) {}
+        if (!STRINGS[current]) current = "en";
+
+        function t(key) {
+          return (STRINGS[current] && STRINGS[current][key]) || STRINGS.en[key] || key;
+        }
+
+        function apply() {
+          document.documentElement.setAttribute("lang", current);
+          document.querySelectorAll("[data-i18n]").forEach(function (node) {
+            node.textContent = t(node.getAttribute("data-i18n"));
+          });
+          document.querySelectorAll("[data-i18n-placeholder]").forEach(function (node) {
+            node.setAttribute("placeholder", t(node.getAttribute("data-i18n-placeholder")));
+          });
+          document.querySelectorAll(".lang-btn").forEach(function (btn) {
+            var on = btn.getAttribute("data-lang") === current;
             btn.classList.toggle("bg-slate-200", on);
             btn.classList.toggle("dark:bg-slate-700", on);
             btn.classList.toggle("font-semibold", on);
           });
+          document.dispatchEvent(new CustomEvent("fc:lang", { detail: { lang: current } }));
         }
 
-        buttons.forEach(function (btn) {
+        document.querySelectorAll(".lang-btn").forEach(function (btn) {
           btn.addEventListener("click", function () {
-            var lang = btn.getAttribute("data-lang");
+            current = btn.getAttribute("data-lang");
             try {
-              localStorage.setItem("lang", lang);
+              localStorage.setItem("lang", current);
             } catch (e) {}
-            render(lang);
+            apply();
           });
         });
 
-        render(active);
+        // Shared handle for page scripts (home submit, report renderer).
+        window.FC_I18N = { t: t, lang: function () { return current; } };
+        apply();
       })();
     </script>
+    {% block scripts %}{% endblock %}
   </body>
 </html>

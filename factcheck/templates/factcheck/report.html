@@ -1,15 +1,36 @@
 {% extends "factcheck/base.html" %}
+{% load static %}
 
-{# Placeholder for the claim-by-claim verdict report. The full report view with
-   expandable evidence panels and the simple-view toggle is built in Phase 4. #}
+{# Claim-by-claim verdict report (Phase 4). The pipeline JSON is written to
+   sessionStorage by the home page; report_interactions.js renders it here.
+   Verdict colors, expandable evidence panels, and the simple-view toggle all
+   live in that script. The disclaimer is always visible (Rules 3/10). #}
 
 {% block title %}Report — Fact-Checking Engine{% endblock %}
 
 {% block content %}
-  <section class="mx-auto max-w-2xl">
-    <h1 class="text-2xl font-semibold tracking-tight">Report</h1>
-    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-      The verdict report is built in a later phase.
-    </p>
+  <section class="mx-auto max-w-3xl">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h1 class="text-2xl font-semibold tracking-tight" data-i18n="report.heading">Report</h1>
+
+      <label class="flex cursor-pointer select-none items-center gap-2 text-sm">
+        <input id="simple-view-toggle" type="checkbox" class="h-4 w-4 accent-slate-700" />
+        <span data-i18n="report.simple_view">Simple view</span>
+      </label>
+    </div>
+
+    <div id="report-root" class="mt-6 space-y-4"></div>
+
+    <a
+      href="{% url 'factcheck:home' %}"
+      class="mt-8 inline-block rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+      data-i18n="report.check_another"
+    >
+      Check another claim
+    </a>
   </section>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'factcheck/js/report_interactions.js' %}"></script>
 {% endblock %}
