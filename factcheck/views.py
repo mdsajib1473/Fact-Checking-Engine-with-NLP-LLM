@@ -10,6 +10,7 @@ import requests
 from django.views.generic import TemplateView
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from .serializers import CheckUrlRequestSerializer, ExtractRequestSerializer
@@ -43,8 +44,13 @@ class ExtractClaimsView(APIView):
     Rule 6), runs :func:`claim_service.process_text_input_with_evidence`
     (extract → persist → evidence → verdict), and returns each claim with its
     language, confidence, evidence, and verdict (label, confidence score,
-    explanation, disclaimer — Rule 3). Invalid input yields 400.
+    explanation, disclaimer — Rule 3). Invalid input yields 400. Throttled per
+    client (scope ``factcheck``, rate from settings) because each request fans
+    out into external API calls — exceeding the limit yields 429 (Rule 7/11).
     """
+
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "factcheck"
 
     def post(self, request):
         """Validate the request body, run the pipeline, and return the result JSON."""
@@ -73,8 +79,12 @@ class CheckUrlView(APIView):
     (scheme check, timeout, content cap — Rules 6/12), then runs the same
     pipeline as the text endpoint with ``source_type="url"``. A page that can't
     be fetched or has no readable text yields 400 with a plain-language error
-    (Rule 15 — the failure is reported, never silent).
+    (Rule 15 — the failure is reported, never silent). Shares the ``factcheck``
+    throttle scope with the extract endpoint (one combined budget per client).
     """
+
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "factcheck"
 
     def post(self, request):
         """Validate the URL, scrape it, run the pipeline, and return the JSON."""

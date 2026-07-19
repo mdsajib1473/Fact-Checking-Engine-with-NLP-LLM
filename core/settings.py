@@ -247,6 +247,22 @@ SCRAPER_MAX_CONTENT_CHARS = env_int("SCRAPER_MAX_CONTENT_CHARS", 50000)
 EVIDENCE_SNIPPET_MAX_CHARS = env_int("EVIDENCE_SNIPPET_MAX_CHARS", 2000)
 
 
+# --- API rate limiting (Phase 5) ---
+# The two pipeline endpoints fan out into external API calls (Wikipedia,
+# Wikidata, Google Fact Check, Groq), so unauthenticated traffic is throttled
+# per client IP. Limit is configurable via env (Rule 7); DRF returns 429 with a
+# Retry-After header when exceeded.
+
+RATE_LIMIT_PER_HOUR = env_int("RATE_LIMIT_PER_HOUR", 10)
+
+REST_FRAMEWORK = {
+    "DEFAULT_THROTTLE_RATES": {
+        # Scope used by the extract/check-url views (ScopedRateThrottle).
+        "factcheck": f"{RATE_LIMIT_PER_HOUR}/hour",
+    },
+}
+
+
 # --- Verdict engine (Phase 4) ---
 # Groq free-tier LLM for chain-of-thought verdict reasoning. Key from .env only
 # (Rule 6); model + limits configurable without touching code (Rule 7). An
@@ -272,3 +288,7 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
+    # Conservative HSTS: 1 hour by default, no subdomains, no preload — raise
+    # via env once the domain is confirmed stable on HTTPS (careless multi-year
+    # HSTS on a misconfigured domain is effectively irreversible).
+    SECURE_HSTS_SECONDS = env_int("SECURE_HSTS_SECONDS", 3600)

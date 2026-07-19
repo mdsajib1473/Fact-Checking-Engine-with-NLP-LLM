@@ -1,14 +1,26 @@
-# Render deployment config for the Fact-Checking Engine (Phase 1 baseline).
+# Render deployment config for the Fact-Checking Engine.
 # Secrets (Neon connection string, API keys) are set in the Render dashboard as
 # environment variables, NOT committed here. `sync: false` means "prompt me in
 # the dashboard" rather than syncing a value from this file.
+#
+# Free-tier memory notes (512 MB):
+# - One gunicorn worker with threads; the request pipeline is I/O-bound
+#   (external APIs), so threads are enough and a second worker would double RAM.
+# - --timeout 120 because a cold pipeline request (spaCy + 3 evidence sources +
+#   Groq) can exceed gunicorn's 30 s default and would kill the worker.
+# - ENABLE_HF_FALLBACK=0: the Bangla zero-shot model (mDeBERTa) needs ~700 MB+
+#   loaded and cannot fit on this plan. Bangla claim extraction degrades to the
+#   built-in heuristic pass (Phase 2 design). Flip on only after upgrading RAM.
+# - ENABLE_EMBEDDING_RELEVANCE=1 keeps the small MiniLM relevance model
+#   (~150 MB loaded). If the service OOMs under real traffic, set this to 0 —
+#   relevance scoring falls back to lexical overlap automatically.
 services:
   - type: web
     name: fact-checking-engine
     runtime: python
     plan: free
     buildCommand: "bash ./build.sh"
-    startCommand: "gunicorn core.wsgi:application"
+    startCommand: "gunicorn core.wsgi:application --workers 1 --threads 4 --timeout 120"
     envVars:
       - key: DJANGO_SECRET_KEY
         generateValue: true
@@ -24,3 +36,11 @@ services:
         sync: false
       - key: GOOGLE_FACTCHECK_API_KEY
         sync: false
+      - key: GROQ_MODEL
+        value: "openai/gpt-oss-120b"
+      - key: ENABLE_HF_FALLBACK
+        value: "0"
+      - key: ENABLE_EMBEDDING_RELEVANCE
+        value: "1"
+      - key: RATE_LIMIT_PER_HOUR
+        value: "10"
